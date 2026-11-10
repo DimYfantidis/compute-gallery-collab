@@ -1,0 +1,85 @@
+# Development environment. Pick the service that matches your machine:
+#
+#   docker compose up -d --build <service>
+#   docker compose exec <service> bash
+#   docker compose down
+#
+#   linux-nvidia           Linux + NVIDIA GPU (NVIDIA Container Toolkit), X11 desktop
+#   windows-wsl            Windows 10/11 + Docker Desktop (WSL2), NVIDIA GPU
+#   windows-wsl-amd-intel  Windows 10/11 + Docker Desktop (WSL2), AMD or Intel GPU
+#   cpu                    any host (macOS, no GPU, CI); GUI at http://localhost:6080/vnc.html
+#
+# ./run.sh (or run.cmd on Windows) picks the service for you.
+
+x-dev: &dev
+  build:
+    context: .
+    args:
+      # On Linux, `export HOST_UID=$(id -u) HOST_GID=$(id -g)` so files created in the
+      # mounted workspace are owned by you.
+      USER_UID: ${HOST_UID:-1000}
+      USER_GID: ${HOST_GID:-1000}
+  image: compute-gallery-dev
+  working_dir: /home/workspace
+  init: true
+  command: sleep infinity
+
+x-nvidia: &nvidia
+  resources:
+    reservations:
+      devices:
+        - driver: nvidia
+          count: all
+          capabilities: [gpu]
+
+services:
+  linux-nvidia:
+    <<: *dev
+    environment:
+      DISPLAY: ${DISPLAY:-:0}
+    volumes:
+      - .:/home/workspace
+      - history:/commandhistory
+      # Run `xhost +local:` on the host once so the container may open windows.
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    deploy: *nvidia
+
+  windows-wsl-amd-intel: &windows-wsl
+    <<: *dev
+    # OpenGL runs on the GPU through WSL's D3D12 bridge and windows open via WSLg.
+    # Docker Desktop provides no GPU OpenCL driver, so OpenCL uses the CPU (PoCL).
+    environment:
+      DISPLAY: ":0"
+      PULSE_SERVER: /mnt/wslg/PulseServer
+      LD_LIBRARY_PATH: /usr/lib/wsl/lib
+      GALLIUM_DRIVER: d3d12
+      # Laptops with an iGPU otherwise render on the iGPU; falls back to the default adapter if no match.
+      MESA_D3D12_DEFAULT_ADAPTER_NAME: NVIDIA
+    devices:
+      - /dev/dxg
+    volumes:
+      - .:/home/workspace
+      - history:/commandhistory
+      - /run/desktop/mnt/host/wslg/.X11-unix:/tmp/.X11-unix
+      - /run/desktop/mnt/host/wslg:/mnt/wslg
+      - /usr/lib/wsl:/usr/lib/wsl:ro
+
+  windows-wsl:
+    <<: *windows-wsl
+    deploy: *nvidia
+
+  cpu:
+    <<: *dev
+    # OpenCL on all CPU cores via PoCL, OpenGL via Mesa llvmpipe, GUI in the browser.
+    command: start-desktop sleep infinity
+    environment:
+      DISPLAY: ":1"
+    ports:
+      - "127.0.0.1:6080:6080"
+    shm_size: 1g
+    volumes:
+      - .:/home/workspace
+      - history:/commandhistory
+
+volumes:
+  history:

@@ -1,0 +1,24 @@
+{
+    "title": "Grayscale on the GPU",
+    "category": "Imaging",
+    "author": "Dimitris Yfantidis",
+    "summary": "A large photo converted to grayscale by an OpenCL kernel.",
+    "description": "Loads a 15,000-pixel-wide photo, converts every pixel to grayscale in an OpenCL kernel, prints how long the kernel took and shows the result. Compare it with the CPU version.",
+    "how_it_works": [
+        "The photo is decoded with SDL_image and copied to the OpenCL device. The kernel runs once per pixel: it reads the pixel's four bytes, computes its luminance with the Rec. 709 weights (0.2126 R + 0.7152 G + 0.0722 B) and writes that to red, green and blue, keeping alpha.",
+        "The time printed is the kernel alone, measured with OpenCL profiling events, so copying the image to and from the device is not counted."
+    ],
+    "highlights": [
+        "The kernel time in the console (the terminal button at the top), against the CPU version's time.",
+        "Every pixel is independent, which is exactly the kind of work GPUs are built for.",
+        "Pick another OpenCL device in Settings to compare them."
+    ],
+    "tags": ["OpenCL", "Image processing"],
+    "executable": "grayscale_gpu",
+    "window": "embed",
+    "requires": ["opencl"],
+    "controls": [
+        ["Esc", "Back to the gallery"]
+    ],
+    "thumbnail": "thumbnail.png"
+}

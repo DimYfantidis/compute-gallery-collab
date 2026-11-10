@@ -1,0 +1,22 @@
+{
+    "title": "OpenCL vs. plain C",
+    "category": "Benchmarks",
+    "author": "Dimitris Yfantidis",
+    "summary": "11 million floats through the same math on OpenCL and in C, timed and checked.",
+    "description": "Evaluates the same function for about 11 million random numbers twice, as an OpenCL kernel and as a C loop, checks that the results match, and prints both times and the speed-up. It has no window: its output appears here.",
+    "how_it_works": [
+        "11,059,200 random floats between -pi and pi (the number of values in one 2560 x 1440 RGB frame) go through atanh(sin x * cos x) + tanh x: once in an OpenCL kernel with one work-item per value, once in a C loop on a single core.",
+        "WARM is the kernel alone, measured with OpenCL profiling events. COLD adds creating the buffers and copying the data. The two sets of results are then compared value by value, to a tolerance of one in a million."
+    ],
+    "highlights": [
+        "The Speedup line: how much faster the kernel is than one CPU core.",
+        "The gap between WARM and COLD: moving data and setting up often costs more than the computation itself.",
+        "Pick another OpenCL device in Settings and run it again."
+    ],
+    "tags": ["OpenCL", "Benchmark"],
+    "executable": "test_opencl",
+    "window": "none",
+    "requires": ["opencl"],
+    "controls": [],
+    "thumbnail": "thumbnail.png"
+}

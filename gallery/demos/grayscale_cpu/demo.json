@@ -1,0 +1,23 @@
+{
+    "title": "Grayscale on the CPU",
+    "category": "Imaging",
+    "author": "Dimitris Yfantidis",
+    "summary": "The same filter as a single-threaded C loop, for comparison.",
+    "description": "Converts the same 15,000-pixel-wide photo to grayscale with a plain C loop on one CPU core, prints how long it took and shows the result. Run the GPU version too and compare the times.",
+    "how_it_works": [
+        "Two nested loops walk the image row by row and pixel by pixel, replacing red, green and blue with the pixel's luminance and keeping alpha.",
+        "This version computes luminance in integer arithmetic with the older Rec. 601 weights, (299 R + 587 G + 114 B) / 1000, so its grays differ very slightly from the GPU version's Rec. 709 ones."
+    ],
+    "highlights": [
+        "The time in the console (the terminal button at the top): one core visits every pixel in turn.",
+        "The image looks the same as the GPU result; the difference is in how long it took."
+    ],
+    "tags": ["C", "Single core"],
+    "executable": "grayscale_cpu",
+    "window": "embed",
+    "requires": [],
+    "controls": [
+        ["Esc", "Back to the gallery"]
+    ],
+    "thumbnail": "thumbnail.png"
+}
