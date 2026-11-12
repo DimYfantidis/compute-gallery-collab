@@ -305,7 +305,7 @@ int main()
         if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         {
             v -= SPEED_RADIANS_PER_SEC * dt_sec;
-            v = (v < 0.01 * glm::pi<double>() ? 0.01 : v);
+            v = (v < 0.01 * glm::pi<double>() ? 0.01 * glm::pi<double>() : v);
         }
         if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
         {

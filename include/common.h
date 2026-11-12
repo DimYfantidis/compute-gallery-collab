@@ -23,7 +23,9 @@ cl_float *fetch_random_data(size_t length, cl_float min, cl_float max);
 
 float *array_copy(const float *src, size_t length);
 
-void assert_equals(const float *const v1, const float *const v2, size_t length, float tolerance);
+/* Returns 1 if every pair of elements differs by less than `tolerance`, else reports the
+ * first mismatch on stderr and returns 0. */
+int assert_equals(const float *const v1, const float *const v2, size_t length, float tolerance);
 
 cl_platform_id *load_platforms(cl_uint *num_platforms);
 
