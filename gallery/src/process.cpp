@@ -271,8 +271,8 @@ bool ChildProcess::requestStop()
         std::set<DWORD>* pids;
         int posted = 0;
     } search{&pids};
-    // Top-level windows, and child windows too: a demo shown inside the gallery is a child of
-    // the gallery's window.
+    // Top-level windows (a demo shown inside the gallery is one too: a popup over its stage),
+    // and child windows, in case a demo's window lives inside another program's window.
     static constexpr WNDENUMPROC ask = [](HWND hwnd, LPARAM param) -> BOOL {
         auto* s = reinterpret_cast<Search*>(param);
         DWORD pid = 0;

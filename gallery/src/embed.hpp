@@ -6,9 +6,10 @@
 struct GLFWwindow;
 
 // Puts a demo's window inside the gallery's window, so a demo runs in the same window and
-// the gallery is back when it exits. Windows: the demo window becomes a borderless child
-// window. X11: it is reparented into the gallery window. Elsewhere (macOS, Wayland) the
-// platform does not allow it and supported() is false.
+// the gallery is back when it exits. Windows: the demo window becomes a borderless popup kept
+// over the gallery's stage (not a child window; see embed.cpp). X11: it is reparented into
+// the gallery window. Elsewhere (macOS, Wayland) the platform does not allow it and
+// supported() is false.
 class WindowEmbedder
 {
 public:
