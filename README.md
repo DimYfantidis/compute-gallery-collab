@@ -163,6 +163,56 @@ Inside the container, `clinfo -l` lists the OpenCL devices and `glxinfo -B` show
 programs pick the first GPU, falling back to the first device of any kind; override with `CG_CL_PLATFORM=<i>`
 and/or `CG_CL_DEVICE=<i>`.
 
+### Developing in Visual Studio Code (VSCode)
+
+* Download [Microsoft's Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) `ms-vscode-remote.remote-containers` for your editor. 
+* Create `./devcontainer/devcontainer.json` and paste the following JSON template inside of it. Make sure to make the appropriate changes udner the `"service"` and `"runServices"` fields to match your platform (e.g. `linux-nvidia`):
+
+```jsonc
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/docker-existing-docker-compose
+{
+	"name": "VSCode Container Extension",
+
+	// Update the 'dockerComposeFile' list if you have more compose files or use different names.
+	// The .devcontainer/docker-compose.yml file contains any overrides you need/want to make.
+	"dockerComposeFile": [
+		"../compose.yaml"
+	],
+
+	// The 'service' property is the name of the service for the container that VS Code should
+	// use. Update this value and .devcontainer/docker-compose.yml to the real service name.
+	"service": ...,
+
+	// The optional 'workspaceFolder' property is the path VS Code should open by default when
+	// connected. This is typically a file mount in .devcontainer/docker-compose.yml
+	"workspaceFolder": "/home/workspace",
+
+	// Features to add to the dev container. More info: https://containers.dev/features.
+	// "features": {},
+
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	// "forwardPorts": [],
+
+	// Uncomment the next line if you want start specific services in your Docker Compose config.
+	"runServices": [
+		...
+	]
+
+	// Uncomment the next line if you want to keep your containers running after VS Code shuts down.
+	// "shutdownAction": "none",
+
+	// Uncomment the next line to run commands after the container is created.
+	// "postCreateCommand": "cat /etc/os-release",
+
+	// Configure tool-specific properties.
+	// "customizations": {},
+
+	// Uncomment to connect as an existing user other than the container default. More info: https://aka.ms/dev-containers-non-root.
+	// "remoteUser": "devcontainer"
+}
+```
+
 ## Building natively
 
 These are the commands the [build workflow](.github/workflows/build.yml) runs on every pull request. GLFW, GLAD,
