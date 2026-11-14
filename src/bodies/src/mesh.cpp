@@ -6,17 +6,16 @@
 
 #include <bodies/mesh.hpp>
 
-
 Mesh Mesh::sphere(int stacks, int slices)
 {
     Mesh mesh;
 
     if (stacks < 2 || slices < 3)
     {
-        std::cerr << std::format(
-            "Expected stacks > 1, slices > 2: "
-            "Received {{stacks: {}, slices, {} }} instead.", 
-            stacks, slices) << '\n';
+        std::cerr << std::format("Expected stacks > 1, slices > 2: "
+                                 "Received {{stacks: {}, slices, {} }} instead.",
+                                 stacks, slices)
+                  << '\n';
         return mesh;
     }
 
@@ -48,7 +47,7 @@ Mesh Mesh::sphere(int stacks, int slices)
         {
             const int offset = 6 * (i * slices + j);
 
-            unsigned int first  = i * (slices + 1) + j;
+            unsigned int first = i * (slices + 1) + j;
             unsigned int second = first + slices + 1;
 
             mesh.indices_[offset + 0] = first;

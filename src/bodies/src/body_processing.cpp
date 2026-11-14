@@ -1,11 +1,10 @@
 #include <bodies/body_processing.hpp>
 #include <memory_resource>
 
-#include <iostream>
 #include <format>
+#include <iostream>
 
-
-static std::mt19937 &getGenerator()
+static std::mt19937& getGenerator()
 {
     static thread_local std::mt19937 generator(std::random_device{}());
     return generator;
@@ -17,8 +16,7 @@ static std::vector<std::byte>& getMemoryBuffer()
     return mem_buffer;
 }
 
-static bool detectSphereCollision(const glm::vec3 &p1, float r1,
-                                  const glm::vec3 &p2, float r2)
+static bool detectSphereCollision(const glm::vec3& p1, float r1, const glm::vec3& p2, float r2)
 {
     const glm::vec3 diff = p1 - p2;
     const float radiusSum = r1 + r2;
@@ -34,7 +32,8 @@ std::vector<SphereData> initBodies(const InitBodiesServiceRequest& request)
 
     auto& generator = getGenerator();
     // Random non-uniform distance in [d_min, d_max].
-    std::piecewise_linear_distribution<float> distanceDist({min_distance, max_distance}, [min_distance](float x) { return x - min_distance; });
+    std::piecewise_linear_distribution<float> distanceDist({min_distance, max_distance},
+                                                           [min_distance](float x) { return x - min_distance; });
     // Random rotation angles between -PI and PI.
     std::uniform_real_distribution<float> rotDist(-glm::pi<float>(), glm::pi<float>());
     // Random body radius in [r_min, r_max].
@@ -51,11 +50,7 @@ std::vector<SphereData> initBodies(const InitBodiesServiceRequest& request)
         // Generate random distance from the center of the galaxy.
         float distance = distanceDist(generator);
         // Generate random Euler angles (radians)
-        glm::vec3 rotation(
-            rotDist(generator),
-            rotDist(generator),
-            rotDist(generator)
-        );
+        glm::vec3 rotation(rotDist(generator), rotDist(generator), rotDist(generator));
         // Rotation matrix
         glm::mat4 R(1.0f);
         R = glm::rotate(R, rotation.x, glm::vec3(1, 0, 0));
@@ -67,10 +62,10 @@ std::vector<SphereData> initBodies(const InitBodiesServiceRequest& request)
         float radius = radiusDist(generator);
         // Body mass
         float mass = massDist(generator);
-        
+
         /*
-         *  For a new sphere at distance d with radius r, you only need to examine existing spheres 
-         *  whose distances from the origin are within [d-(r+r_max), d+(r+r_max)]. Everything outside 
+         *  For a new sphere at distance d with radius r, you only need to examine existing spheres
+         *  whose distances from the origin are within [d-(r+r_max), d+(r+r_max)]. Everything outside
          *  this interval is guaranteed not to collide.
          */
 
@@ -99,7 +94,7 @@ std::vector<SphereData> initBodies(const InitBodiesServiceRequest& request)
             .position = pos,
             .velocity = glm::vec3(0.0f, 0.0f, 0.0f),
             .radius = radius,
-            .mass = mass
+            .mass = mass,
         });
         bodiesByDistance.emplace(d, index);
     }
@@ -110,21 +105,14 @@ void updateBodies(std::span<SphereData> bodies, double dt_sec, double sim_speed_
 {
     constexpr float G = 6.67430e-11f;
 
-    const size_t num_bodies = bodies.size();    
+    const size_t num_bodies = bodies.size();
     std::vector<std::byte>& buffer = getMemoryBuffer();
-    if (buffer.size() != num_bodies) {
+    if (buffer.size() != num_bodies)
+    {
         buffer.resize(num_bodies);
     }
-    std::pmr::monotonic_buffer_resource pool{
-        buffer.data(),
-        buffer.size(),
-        std::pmr::get_default_resource()
-    };
-    std::pmr::vector<glm::vec3> accelerations {
-        num_bodies,
-        glm::vec3(0.0f),
-        &pool
-    };
+    std::pmr::monotonic_buffer_resource pool{buffer.data(), buffer.size(), std::pmr::get_default_resource()};
+    std::pmr::vector<glm::vec3> accelerations{num_bodies, glm::vec3(0.0f), &pool};
     for (size_t i = 0; i < num_bodies; ++i)
     {
         const glm::vec3& qi = bodies[i].position;

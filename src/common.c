@@ -1,10 +1,9 @@
 #include <common.h>
 
-
-cl_float *fetch_random_data(size_t length, cl_float min, cl_float max)
+cl_float* fetch_random_data(size_t length, cl_float min, cl_float max)
 {
     // Initialize our data
-    cl_float *data = (cl_float *)malloc(sizeof(cl_float) * length);
+    cl_float* data = (cl_float*)malloc(sizeof(cl_float) * length);
     cl_float scale = max - min;
     for (size_t i = 0; i < length; ++i)
     {
@@ -14,9 +13,9 @@ cl_float *fetch_random_data(size_t length, cl_float min, cl_float max)
     return data;
 }
 
-float *array_copy(const float *src, size_t length)
+float* array_copy(const float* src, size_t length)
 {
-    float *dest = (float *)malloc(sizeof(float) * length);
+    float* dest = (float*)malloc(sizeof(float) * length);
     for (size_t i = 0; i < length; ++i)
     {
         dest[i] = src[i];
@@ -24,7 +23,7 @@ float *array_copy(const float *src, size_t length)
     return dest;
 }
 
-void assert_equals(const float *const v1, const float *const v2, size_t length, float tolerance)
+void assert_equals(const float* const v1, const float* const v2, size_t length, float tolerance)
 {
     for (size_t i = 0; i < length; ++i)
     {
@@ -37,12 +36,12 @@ void assert_equals(const float *const v1, const float *const v2, size_t length, 
     }
 }
 
-cl_platform_id *load_platforms(cl_uint *num_platforms)
+cl_platform_id* load_platforms(cl_uint* num_platforms)
 {
     CHECK_CL(clGetPlatformIDs(0, NULL, num_platforms));
     printf("%u platform(s) found\n", *num_platforms);
 
-    cl_platform_id* platforms = (cl_platform_id *)malloc(*num_platforms * sizeof(cl_platform_id));
+    cl_platform_id* platforms = (cl_platform_id*)malloc(*num_platforms * sizeof(cl_platform_id));
     CHECK_CL(clGetPlatformIDs(*num_platforms, platforms, NULL));
 
     for (size_t i = 0; i < *num_platforms; ++i)
@@ -59,7 +58,7 @@ cl_platform_id *load_platforms(cl_uint *num_platforms)
     return platforms;
 }
 
-cl_device_id *load_devices(cl_platform_id platform, cl_uint *num_devices)
+cl_device_id* load_devices(cl_platform_id platform, cl_uint* num_devices)
 {
     char platform_name[256];
     CHECK_CL(clGetPlatformInfo(platform, CL_PLATFORM_NAME, sizeof(platform_name), platform_name, NULL));
@@ -67,7 +66,7 @@ cl_device_id *load_devices(cl_platform_id platform, cl_uint *num_devices)
     CHECK_CL(clGetDeviceIDs(platform, CL_DEVICE_TYPE_ALL, 0, NULL, num_devices));
     printf("%u device(s) found for \"%s\"\n", *num_devices, platform_name);
 
-    cl_device_id* devices = (cl_device_id *)malloc(*num_devices * sizeof(cl_device_id));
+    cl_device_id* devices = (cl_device_id*)malloc(*num_devices * sizeof(cl_device_id));
     CHECK_CL(clGetDeviceIDs(platform, CL_DEVICE_TYPE_ALL, *num_devices, devices, NULL));
 
     for (size_t i = 0; i < *num_devices; ++i)
@@ -95,9 +94,9 @@ cl_device_id *load_devices(cl_platform_id platform, cl_uint *num_devices)
     return devices;
 }
 
-static long env_index(const char *name)
+static long env_index(const char* name)
 {
-    const char *value = getenv(name);
+    const char* value = getenv(name);
     if (!value || !*value)
         return -1;
     return strtol(value, NULL, 10);
@@ -106,7 +105,7 @@ static long env_index(const char *name)
 cl_device_id select_device(void)
 {
     cl_uint num_platforms;
-    cl_platform_id *platforms = load_platforms(&num_platforms);
+    cl_platform_id* platforms = load_platforms(&num_platforms);
 
     const long want_platform = env_index("CG_CL_PLATFORM");
     const long want_device = env_index("CG_CL_DEVICE");
@@ -126,13 +125,14 @@ cl_device_id select_device(void)
             continue;
 
         cl_uint num_devices = 0;
-        cl_device_id *devices = load_devices(platforms[p], &num_devices);
+        cl_device_id* devices = load_devices(platforms[p], &num_devices);
 
         if (want_device >= 0)
         {
             if (want_device >= (long)num_devices)
             {
-                fprintf(stderr, "CG_CL_DEVICE=%ld but platform %u has only %u device(s)\n", want_device, p, num_devices);
+                fprintf(stderr, "CG_CL_DEVICE=%ld but platform %u has only %u device(s)\n", want_device, p,
+                        num_devices);
                 exit(EXIT_FAILURE);
             }
             chosen = devices[want_device];
@@ -170,9 +170,9 @@ double read_time_sec()
     return (double)SDL_GetPerformanceCounter() / (double)SDL_GetPerformanceFrequency();
 }
 
-char *get_text_from_file(const char *path)
+char* get_text_from_file(const char* path)
 {
-    FILE *f = fopen(path, "rb");
+    FILE* f = fopen(path, "rb");
     if (!f)
         return NULL;
 
@@ -191,7 +191,7 @@ char *get_text_from_file(const char *path)
 
     rewind(f);
 
-    char *buffer = malloc((size_t)size + 1);
+    char* buffer = malloc((size_t)size + 1);
     if (!buffer)
     {
         fclose(f);
@@ -211,7 +211,7 @@ char *get_text_from_file(const char *path)
     return buffer;
 }
 
-void print_image_details(const SDL_Surface *const surface)
+void print_image_details(const SDL_Surface* const surface)
 {
     if (!surface)
     {
@@ -219,7 +219,7 @@ void print_image_details(const SDL_Surface *const surface)
         return;
     }
 
-    const SDL_PixelFormat *fmt = surface->format;
+    const SDL_PixelFormat* fmt = surface->format;
 
     if (!fmt)
     {
@@ -237,19 +237,16 @@ void print_image_details(const SDL_Surface *const surface)
     printf("  Height:            %d px\n", surface->h);
 
     printf("\nPixel Format:\n");
-    printf("  Format:            %s\n",
-           SDL_GetPixelFormatName(fmt->format));
+    printf("  Format:            %s\n", SDL_GetPixelFormatName(fmt->format));
     printf("  Bits per pixel:    %u\n", fmt->BitsPerPixel);
     printf("  Bytes per pixel:   %u\n", fmt->BytesPerPixel);
 
     printf("\nMemory Layout:\n");
     printf("  Pitch:             %d bytes\n", surface->pitch);
     printf("  Row pixel bytes:   %zu bytes\n", row_bytes);
-    printf("  Row padding:       %lld bytes\n",
-           (long long)surface->pitch - (long long)row_bytes);
+    printf("  Row padding:       %lld bytes\n", (long long)surface->pitch - (long long)row_bytes);
     printf("  Buffer size:       %zu bytes\n", buffer_size);
-    printf("  Buffer size:       %.2f MiB\n",
-           buffer_size / (1024.0 * 1024.0));
+    printf("  Buffer size:       %.2f MiB\n", buffer_size / (1024.0 * 1024.0));
     printf("  Pixels pointer:    %p\n", surface->pixels);
 
     printf("\nChannel Masks:\n");
@@ -260,8 +257,7 @@ void print_image_details(const SDL_Surface *const surface)
 
     printf("\nSurface Properties:\n");
     printf("  Flags:             0x%08X\n", surface->flags);
-    printf("  Must lock:         %s\n",
-           SDL_MUSTLOCK(surface) ? "Yes" : "No");
+    printf("  Must lock:         %s\n", SDL_MUSTLOCK(surface) ? "Yes" : "No");
     printf("  Reference count:   %d\n", surface->refcount);
 
     printf("\nClipping Rectangle:\n");
@@ -279,7 +275,7 @@ void print_image_details(const SDL_Surface *const surface)
     printf("=========================================\n");
 }
 
-void cleanup_sdl(SDL_Surface *surface, SDL_Window *win, SDL_Renderer *rend, SDL_Texture *tex)
+void cleanup_sdl(SDL_Surface* surface, SDL_Window* win, SDL_Renderer* rend, SDL_Texture* tex)
 {
     if (surface)
         SDL_FreeSurface(surface);
@@ -297,7 +293,7 @@ void cleanup_sdl(SDL_Surface *surface, SDL_Window *win, SDL_Renderer *rend, SDL_
     SDL_Quit();
 }
 
-int should_sdl_exit(SDL_Event *event)
+int should_sdl_exit(SDL_Event* event)
 {
     switch (event->type)
     {

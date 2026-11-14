@@ -1,6 +1,6 @@
 #pragma once
 
-#include <glad/gl.h>
 #include <filesystem>
+#include <glad/gl.h>
 
 GLuint loadTexture(const std::filesystem::path& filename);

@@ -3,24 +3,22 @@
 
 #include <common.h>
 
-void cpu_apply_grayscale_rgba32(Uint8 *pixels, int width, int height, int pitch)
+void cpu_apply_grayscale_rgba32(Uint8* pixels, int width, int height, int pitch)
 {
     for (int y = 0; y < height; ++y)
     {
-        Uint8 *row = pixels + y * pitch;
+        Uint8* row = pixels + y * pitch;
 
         for (int x = 0; x < width; ++x)
         {
-            Uint8 *pixel = row + x * 4;
+            Uint8* pixel = row + x * 4;
 
             Uint8 r = pixel[0];
             Uint8 g = pixel[1];
             Uint8 b = pixel[2];
 
             // Approximation of luminance
-            Uint8 gray = (Uint8)(
-                (299 * r + 587 * g + 114 * b) / 1000
-            );
+            Uint8 gray = (Uint8)((299 * r + 587 * g + 114 * b) / 1000);
             pixel[0] = gray;
             pixel[1] = gray;
             pixel[2] = gray;
@@ -29,7 +27,7 @@ void cpu_apply_grayscale_rgba32(Uint8 *pixels, int width, int height, int pitch)
     }
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     // returns zero on success else non-zero
     if (SDL_Init(SDL_INIT_VIDEO) != 0)
@@ -43,10 +41,10 @@ int main(int argc, char *argv[])
         SDL_Quit();
         return EXIT_FAILURE;
     }
-    SDL_Surface *surface = NULL;
-    SDL_Window *win = NULL;
-    SDL_Renderer *rend = NULL;
-    SDL_Texture *tex = NULL;
+    SDL_Surface* surface = NULL;
+    SDL_Window* win = NULL;
+    SDL_Renderer* rend = NULL;
+    SDL_Texture* tex = NULL;
 
     surface = IMG_Load(PROJECT_ROOT_PATH "/data/images/felix-mittermeier.jpg");
     {
@@ -57,10 +55,7 @@ int main(int argc, char *argv[])
             return EXIT_FAILURE;
         }
         // Convert to a known pixel format.
-        SDL_Surface *converted = SDL_ConvertSurfaceFormat(
-            surface,
-            SDL_PIXELFORMAT_RGBA32,
-            0);
+        SDL_Surface* converted = SDL_ConvertSurfaceFormat(surface, SDL_PIXELFORMAT_RGBA32, 0);
         if (!converted)
         {
             fprintf(stderr, "Conversion failed: %s\n", SDL_GetError());
@@ -75,7 +70,7 @@ int main(int argc, char *argv[])
     {
         // image bytes = bytes per row * number of rows
         size_t len_bytes = (size_t)surface->pitch * (size_t)surface->h;
-        Uint8 *pixel_buffer = (Uint8 *)malloc(len_bytes);
+        Uint8* pixel_buffer = (Uint8*)malloc(len_bytes);
         memcpy(pixel_buffer, surface->pixels, len_bytes);
 
         double ts_grayscale_begin = read_time_sec();
@@ -87,13 +82,8 @@ int main(int argc, char *argv[])
         free(pixel_buffer);
     }
 
-    win = SDL_CreateWindow(
-        "Spring JPEG",
-        SDL_WINDOWPOS_CENTERED,
-        SDL_WINDOWPOS_CENTERED,
-        surface->w / 8,
-        surface->h / 6,
-        SDL_WINDOW_SHOWN);
+    win = SDL_CreateWindow("Spring JPEG", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, surface->w / 8,
+                           surface->h / 6, SDL_WINDOW_SHOWN);
 
     if (!win)
     {
@@ -102,10 +92,7 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    rend = SDL_CreateRenderer(
-        win,
-        -1,
-        SDL_RENDERER_ACCELERATED);
+    rend = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED);
 
     if (!rend)
     {
@@ -118,8 +105,7 @@ int main(int argc, char *argv[])
 
     if (!tex)
     {
-        fprintf(stderr, "SDL_CreateTextureFromSurface failed: %s\n",
-                SDL_GetError());
+        fprintf(stderr, "SDL_CreateTextureFromSurface failed: %s\n", SDL_GetError());
         cleanup_sdl(surface, win, rend, tex);
         return EXIT_FAILURE;
     }

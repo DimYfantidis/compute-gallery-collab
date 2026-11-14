@@ -2,19 +2,16 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_timer.h>
 
-
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     // returns zero on success else non-zero
-    if (SDL_Init(SDL_INIT_EVERYTHING) != 0) 
+    if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
     {
         printf("error initializing SDL: %s\n", SDL_GetError());
         return EXIT_FAILURE;
     }
     SDL_Window* win = SDL_CreateWindow("GAME", // creates a window
-                                       SDL_WINDOWPOS_CENTERED,
-                                       SDL_WINDOWPOS_CENTERED,
-                                       1000, 1000, 0);
+                                       SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1000, 1000, 0);
 
     // triggers the program that controls
     // your graphics hardware and sets flags
@@ -27,7 +24,7 @@ int main(int argc, char *argv[])
     SDL_Surface* surface;
 
     // please provide a path for your image
-    surface = IMG_Load(PROJECT_ROOT_PATH"/data/images/gohan-its-so-peak.png");
+    surface = IMG_Load(PROJECT_ROOT_PATH "/data/images/gohan-its-so-peak.png");
 
     // loads image to our graphics hardware memory.
     SDL_Texture* tex = SDL_CreateTextureFromSurface(rend, surface);
@@ -59,14 +56,14 @@ int main(int argc, char *argv[])
     int speed = 300;
 
     // animation loop
-    while (!close) 
+    while (!close)
     {
         SDL_Event event;
 
         // Events management
-        while (SDL_PollEvent(&event)) 
+        while (SDL_PollEvent(&event))
         {
-            switch (event.type) 
+            switch (event.type)
             {
 
             case SDL_QUIT:
@@ -76,7 +73,7 @@ int main(int argc, char *argv[])
 
             case SDL_KEYDOWN:
                 // keyboard API for key pressed
-                switch (event.key.keysym.scancode) 
+                switch (event.key.keysym.scancode)
                 {
                 case SDL_SCANCODE_W:
                 case SDL_SCANCODE_UP:
@@ -136,7 +133,7 @@ int main(int argc, char *argv[])
 
     // destroy window
     SDL_DestroyWindow(win);
-    
+
     // close SDL
     SDL_Quit();
 
