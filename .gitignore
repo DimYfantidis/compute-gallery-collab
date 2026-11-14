@@ -6,6 +6,10 @@
 # Python virtual environment for the macOS build (README.md)
 .venv/
 
+# Visual Studio Code
+.vscode/
+.devcontainer/
+
 # --------------- C .gitignore --------------- #
 # Prerequisites
 *.d
@@ -240,3 +244,4 @@ http-client.private.env.json
 .idea/**/copilot.data.migration.*.xml
 
 # Kubernetes Plugin
+.idea/kubernetes/configs/kubeconfig_*
