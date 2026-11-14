@@ -3,30 +3,29 @@
 #include <cstddef>
 #include <cstdlib>
 #include <filesystem>
+#include <format>
+#include <functional>
 #include <iostream>
 #include <limits>
-#include <type_traits>
+#include <map>
 #include <random>
 #include <ranges>
-#include <functional>
-#include <format>
 #include <string>
+#include <type_traits>
 #include <vector>
-#include <map>
 
-#include <glad/gl.h>
 #include <GLFW/glfw3.h>
+#include <glad/gl.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 #include <bodies/body_processing.hpp>
-#include <bodies/textures.hpp>
-#include <bodies/shaders.hpp>
-#include <bodies/vertex.hpp>
 #include <bodies/mesh.hpp>
-
+#include <bodies/shaders.hpp>
+#include <bodies/textures.hpp>
+#include <bodies/vertex.hpp>
 
 int main()
 {
@@ -49,9 +48,7 @@ int main()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // Create window
-    GLFWwindow* window = glfwCreateWindow(
-        1920, 1080, "OpenGL Sphere", nullptr, nullptr
-    );
+    GLFWwindow* window = glfwCreateWindow(1920, 1080, "OpenGL Sphere", nullptr, nullptr);
 
     if (!window)
     {
@@ -97,15 +94,9 @@ int main()
     // Compile shaders
     // -------------------------------------------------------
 
-    GLuint vertexShader = compileShaderFromFile(
-        GL_VERTEX_SHADER,
-        DATA_DIR / "shaders" / "sphere_vertex.glsl"
-    );
+    GLuint vertexShader = compileShaderFromFile(GL_VERTEX_SHADER, DATA_DIR / "shaders" / "sphere_vertex.glsl");
 
-    GLuint fragmentShader = compileShaderFromFile(
-        GL_FRAGMENT_SHADER,
-        DATA_DIR / "shaders" / "fragment.glsl"
-    );
+    GLuint fragmentShader = compileShaderFromFile(GL_FRAGMENT_SHADER, DATA_DIR / "shaders" / "fragment.glsl");
 
     if (!vertexShader || !fragmentShader)
     {
@@ -138,9 +129,7 @@ int main()
     {
         char log[1024];
 
-        glGetProgramInfoLog(
-            shaderProgram, sizeof(log), nullptr, log
-        );
+        glGetProgramInfoLog(shaderProgram, sizeof(log), nullptr, log);
 
         std::cerr << "Shader linking failed:\n" << log << '\n';
 
@@ -171,12 +160,7 @@ int main()
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
-    glBufferData(
-        GL_ARRAY_BUFFER,
-        static_cast<GLsizeiptr>(vertices.size_bytes()),
-        vertices.data(),
-        GL_STATIC_DRAW
-    );
+    glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(vertices.size_bytes()), vertices.data(), GL_STATIC_DRAW);
 
     // -------------------------------------------------------
     // Upload index data to EBO
@@ -184,50 +168,28 @@ int main()
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 
-    glBufferData(
-        GL_ELEMENT_ARRAY_BUFFER,
-        static_cast<GLsizeiptr>(indices.size_bytes()),
-        indices.data(),
-        GL_STATIC_DRAW
-    );
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLsizeiptr>(indices.size_bytes()), indices.data(),
+                 GL_STATIC_DRAW);
 
     // -------------------------------------------------------
     // Configure vertex attributes
     // -------------------------------------------------------
 
     // Position: layout(location = 0) in vec3
-    glVertexAttribPointer(
-        0,
-        3,
-        GL_FLOAT,
-        GL_FALSE,
-        sizeof(Vertex),
-        reinterpret_cast<const void*>(offsetof(Vertex, position))
-    );
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                          reinterpret_cast<const void*>(offsetof(Vertex, position)));
 
     glEnableVertexAttribArray(0);
 
     // Normal: layout(location = 1) in vec3
-    glVertexAttribPointer(
-        1,
-        3,
-        GL_FLOAT,
-        GL_FALSE,
-        sizeof(Vertex),
-        reinterpret_cast<const void*>(offsetof(Vertex, normal))
-    );
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                          reinterpret_cast<const void*>(offsetof(Vertex, normal)));
 
     glEnableVertexAttribArray(1);
 
     // Texture coordinates: layout(location = 2) in vec2
-    glVertexAttribPointer(
-        2,
-        2,
-        GL_FLOAT,
-        GL_FALSE,
-        sizeof(Vertex),
-        reinterpret_cast<const void*>(offsetof(Vertex, texCoord))
-    );
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                          reinterpret_cast<const void*>(offsetof(Vertex, texCoord)));
 
     glEnableVertexAttribArray(2);
 
@@ -248,22 +210,11 @@ int main()
     GLuint ceresTexture = loadTexture(DATA_DIR / "textures" / "2k_ceres_fictional.jpg");
 
     constexpr size_t NUM_BODIES = 1'000;
-    std::vector<SphereData> bodyData = initBodies({
-        .num_bodies = NUM_BODIES, 
-        .radius_range = {
-            .min = 0.4f, 
-            .max = 2.0f
-        }, 
-        .distance_range = {
-            .min = 20.0f, 
-            .max = 400.0f
-        },
-        .mass_range = {
-            .min = 480.0f,
-            .max = 500.0f
-        }
-    });
-    
+    std::vector<SphereData> bodyData = initBodies({.num_bodies = NUM_BODIES,
+                                                   .radius_range = {.min = 0.4f, .max = 2.0f},
+                                                   .distance_range = {.min = 20.0f, .max = 400.0f},
+                                                   .mass_range = {.min = 480.0f, .max = 500.0f}});
+
     // Camera parameters
     double u = glm::pi<double>() / 4;
     double v = glm::pi<double>() / 3;
@@ -278,7 +229,7 @@ int main()
     // Get uniform locations
     const GLint viewLoc = glGetUniformLocation(shaderProgram, "view");
     const GLint projectionLoc = glGetUniformLocation(shaderProgram, "projection");
-    const std::vector<GLint> positionLoc = std::invoke([shaderProgram](){
+    const std::vector<GLint> positionLoc = std::invoke([shaderProgram]() {
         std::vector<GLint> result(NUM_OBJECTS_PER_DRAW);
         for (size_t i = 0; i < NUM_OBJECTS_PER_DRAW; ++i)
         {
@@ -287,7 +238,7 @@ int main()
         }
         return result;
     });
-    const std::vector<GLint> radiusLoc = std::invoke([shaderProgram](){
+    const std::vector<GLint> radiusLoc = std::invoke([shaderProgram]() {
         std::vector<GLint> result(NUM_OBJECTS_PER_DRAW);
         for (size_t i = 0; i < NUM_OBJECTS_PER_DRAW; ++i)
         {
@@ -310,7 +261,8 @@ int main()
     while (!glfwWindowShouldClose(window))
     {
         ts_current = std::chrono::steady_clock::now();
-        double dt_sec = (double)std::chrono::duration_cast<std::chrono::nanoseconds>(ts_current - ts_previous).count() * 1e-9;
+        double dt_sec =
+            (double)std::chrono::duration_cast<std::chrono::nanoseconds>(ts_current - ts_previous).count() * 1e-9;
         ts_previous = ts_current;
 
         // Update viewport (projection matrix)
@@ -328,15 +280,9 @@ int main()
         glViewport(0, 0, width, height);
 
         // Update projection matrix
-        const float aspect =
-            static_cast<float>(width) / static_cast<float>(height);
+        const float aspect = static_cast<float>(width) / static_cast<float>(height);
 
-        const glm::mat4 projection = glm::perspective(
-            glm::radians(45.0f),
-            aspect,
-            0.1f,
-            2000.0f
-        );
+        const glm::mat4 projection = glm::perspective(glm::radians(45.0f), aspect, 0.1f, 2000.0f);
 
         // Update Camera (view matrix)
         constexpr double SPEED_RADIANS_PER_SEC = glm::pi<double>();
@@ -346,26 +292,22 @@ int main()
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
             glfwSetWindowShouldClose(window, true);
 
-        if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS
-            || glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
         {
             u += SPEED_RADIANS_PER_SEC * dt_sec;
             u = (u > 2 * glm::pi<double>() ? u - 2 * glm::pi<double>() : u);
         }
-        if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS
-            || glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         {
             u -= SPEED_RADIANS_PER_SEC * dt_sec;
             u = (u < 0 ? u + 2 * glm::pi<double>() : u);
         }
-        if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS
-            || glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         {
             v -= SPEED_RADIANS_PER_SEC * dt_sec;
             v = (v < 0.01 * glm::pi<double>() ? 0.01 : v);
         }
-        if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS
-            || glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
         {
             v += SPEED_RADIANS_PER_SEC * dt_sec;
             v = (v > 0.99 * glm::pi<double>() ? 0.99 * glm::pi<double>() : v);
@@ -395,11 +337,8 @@ int main()
             auto cam_x = (float)(r * std::sin(v) * std::cos(u));
             auto cam_y = (float)(r * std::cos(v));
             auto cam_z = (float)(r * std::sin(v) * std::sin(u));
-            view = glm::lookAt(
-                glm::vec3(cam_x, cam_y, cam_z),
-                glm::vec3(0.0f, 0.0f, 0.0f),
-                glm::vec3(0.0f, 1.0f, 0.0f)
-            );
+            view =
+                glm::lookAt(glm::vec3(cam_x, cam_y, cam_z), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         }
         updateBodies(bodyData, dt_sec, sim_speed_factor);
 
@@ -411,34 +350,15 @@ int main()
         glUseProgram(shaderProgram);
 
         // Texture unit 0
-        glUniform1i(
-            glGetUniformLocation(shaderProgram, "diffuseTexture"),
-            0
-        );
+        glUniform1i(glGetUniformLocation(shaderProgram, "diffuseTexture"), 0);
         // Lighting
-        glUniform3f(
-            glGetUniformLocation(shaderProgram, "lightPos"),
-            0.0f, 0.0f, 0.0f
-        );
-        glUniform3f(
-            glGetUniformLocation(shaderProgram, "lightColor"),
-            1.0f, 1.0f, 1.0f
-        );
+        glUniform3f(glGetUniformLocation(shaderProgram, "lightPos"), 0.0f, 0.0f, 0.0f);
+        glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), 1.0f, 1.0f, 1.0f);
 
         // Upload view matrix
-        glUniformMatrix4fv(
-            viewLoc,
-            1,
-            GL_FALSE,
-            glm::value_ptr(view)
-        );
+        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
         // Upload projection matrix
-        glUniformMatrix4fv(
-            projectionLoc,
-            1,
-            GL_FALSE,
-            glm::value_ptr(projection)
-        );
+        glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
         // Bind texture
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, ceresTexture);
@@ -446,7 +366,7 @@ int main()
         // Bind sphere VAO
         glBindVertexArray(VAO);
 
-        constexpr size_t NUM_LEFTOVER = NUM_BODIES % NUM_OBJECTS_PER_DRAW; 
+        constexpr size_t NUM_LEFTOVER = NUM_BODIES % NUM_OBJECTS_PER_DRAW;
         constexpr size_t NUM_GPU_CALLS = NUM_BODIES / NUM_OBJECTS_PER_DRAW + (NUM_LEFTOVER == 0 ? 0 : 1);
 
         // Draw all spheres
@@ -461,13 +381,8 @@ int main()
                 glUniform3fv(positionLoc[j], 1, glm::value_ptr(position));
                 glUniform1fv(radiusLoc[j], 1, &radius);
             }
-            glDrawElementsInstanced(
-                GL_TRIANGLES,
-                indexCount,
-                GL_UNSIGNED_INT,
-                nullptr,
-                static_cast<GLsizei>(batch_size)
-            );
+            glDrawElementsInstanced(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, nullptr,
+                                    static_cast<GLsizei>(batch_size));
         }
         // Present frame
         glfwSwapBuffers(window);

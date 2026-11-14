@@ -1,15 +1,13 @@
 #pragma once
 
-#include <vector>
 #include <span>
+#include <vector>
 
 #include "vertex.hpp"
-
 
 class Mesh
 {
 public:
-
     Mesh() = default;
 
     static Mesh sphere(int stacks, int slices);
@@ -21,7 +19,6 @@ public:
     bool isEmpty() const noexcept;
 
 private:
-
     std::vector<Vertex> vertices_;
 
     std::vector<unsigned int> indices_;

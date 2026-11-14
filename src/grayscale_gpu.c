@@ -3,24 +3,22 @@
 
 #include <common.h>
 
-void cpu_apply_grayscale_rgba32(Uint8 *pixels, int width, int height, int pitch)
+void cpu_apply_grayscale_rgba32(Uint8* pixels, int width, int height, int pitch)
 {
     for (int y = 0; y < height; ++y)
     {
-        Uint8 *row = pixels + y * pitch;
+        Uint8* row = pixels + y * pitch;
 
         for (int x = 0; x < width; ++x)
         {
-            Uint8 *pixel = row + x * 4;
+            Uint8* pixel = row + x * 4;
 
             Uint8 r = pixel[0];
             Uint8 g = pixel[1];
             Uint8 b = pixel[2];
 
             // Approximation of luminance
-            Uint8 gray = (Uint8)(
-                (299 * r + 587 * g + 114 * b) / 1000
-            );
+            Uint8 gray = (Uint8)((299 * r + 587 * g + 114 * b) / 1000);
             pixel[0] = gray;
             pixel[1] = gray;
             pixel[2] = gray;
@@ -29,7 +27,7 @@ void cpu_apply_grayscale_rgba32(Uint8 *pixels, int width, int height, int pitch)
     }
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     // returns zero on success else non-zero
     if (SDL_Init(SDL_INIT_VIDEO) != 0)
@@ -45,10 +43,10 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    SDL_Surface *surface = NULL;
-    SDL_Window *win = NULL;
-    SDL_Renderer *rend = NULL;
-    SDL_Texture *tex = NULL;
+    SDL_Surface* surface = NULL;
+    SDL_Window* win = NULL;
+    SDL_Renderer* rend = NULL;
+    SDL_Texture* tex = NULL;
 
     surface = IMG_Load(PROJECT_ROOT_PATH "/data/images/felix-mittermeier.jpg");
     {
@@ -59,10 +57,7 @@ int main(int argc, char *argv[])
             return EXIT_FAILURE;
         }
         // Convert to a known pixel format.
-        SDL_Surface *converted = SDL_ConvertSurfaceFormat(
-            surface,
-            SDL_PIXELFORMAT_RGBA32,
-            0);
+        SDL_Surface* converted = SDL_ConvertSurfaceFormat(surface, SDL_PIXELFORMAT_RGBA32, 0);
         if (!converted)
         {
             fprintf(stderr, "Conversion failed: %s\n", SDL_GetError());
@@ -85,19 +80,18 @@ int main(int argc, char *argv[])
     cl_command_queue queue = clCreateCommandQueueWithProperties(context, device, queue_properties, &errcode);
     CHECK_CL(errcode);
 
-    const char *source =
-        "__kernel void grayscale(__global uchar *input, __global uchar *output) {\n"
-        "    int gid = get_global_id(0);\n"
-        "    uchar4 pixel = vload4(gid, input);\n"
-        "    uchar gray = convert_uchar_sat_rte(\n"
-        "        0.2126f * pixel.x +\n"
-        "        0.7152f * pixel.y +\n"
-        "        0.0722f * pixel.z);\n"
-        "    vstore4((uchar4)(gray, gray, gray, pixel.w), gid, output);\n"
-        "}\n";
+    const char* source = "__kernel void grayscale(__global uchar *input, __global uchar *output) {\n"
+                         "    int gid = get_global_id(0);\n"
+                         "    uchar4 pixel = vload4(gid, input);\n"
+                         "    uchar gray = convert_uchar_sat_rte(\n"
+                         "        0.2126f * pixel.x +\n"
+                         "        0.7152f * pixel.y +\n"
+                         "        0.0722f * pixel.z);\n"
+                         "    vstore4((uchar4)(gray, gray, gray, pixel.w), gid, output);\n"
+                         "}\n";
 
     // Compile the program (i.e. the collection of kernels).
-    cl_program program = clCreateProgramWithSource(context, 1, (const char **)&source, NULL, &errcode);
+    cl_program program = clCreateProgramWithSource(context, 1, (const char**)&source, NULL, &errcode);
     CHECK_CL(errcode);
     CHECK_CL(clBuildProgram(program, 0, NULL, NULL, NULL, NULL));
     cl_kernel kernel = clCreateKernel(program, "grayscale", &errcode);
@@ -153,14 +147,8 @@ int main(int argc, char *argv[])
     clReleaseCommandQueue(queue);
     clReleaseContext(context);
 
-
-    win = SDL_CreateWindow(
-        "Spring JPEG",
-        SDL_WINDOWPOS_CENTERED,
-        SDL_WINDOWPOS_CENTERED,
-        surface->w / 8,
-        surface->h / 6,
-        SDL_WINDOW_SHOWN);
+    win = SDL_CreateWindow("Spring JPEG", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, surface->w / 8,
+                           surface->h / 6, SDL_WINDOW_SHOWN);
 
     if (!win)
     {
@@ -169,10 +157,7 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    rend = SDL_CreateRenderer(
-        win,
-        -1,
-        SDL_RENDERER_ACCELERATED);
+    rend = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED);
 
     if (!rend)
     {
@@ -185,8 +170,7 @@ int main(int argc, char *argv[])
 
     if (!tex)
     {
-        fprintf(stderr, "SDL_CreateTextureFromSurface failed: %s\n",
-                SDL_GetError());
+        fprintf(stderr, "SDL_CreateTextureFromSurface failed: %s\n", SDL_GetError());
         cleanup_sdl(surface, win, rend, tex);
         return EXIT_FAILURE;
     }

@@ -1,11 +1,11 @@
-#include <vector>
+#include <map>
 #include <random>
 #include <span>
-#include <map>
+#include <vector>
 
 #include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 struct SphereData
 {
@@ -47,7 +47,7 @@ struct InitBodiesServiceRequest
  *  @param[in] request See @ref InitBodiesServiceRequest
  *  @returns The list of celestial bodies that satisfy the following properties.
  */
-std::vector<SphereData> initBodies(const InitBodiesServiceRequest &request);
+std::vector<SphereData> initBodies(const InitBodiesServiceRequest& request);
 
 /**
  *  @brief Updates the bodies' physical state within the main display loop.

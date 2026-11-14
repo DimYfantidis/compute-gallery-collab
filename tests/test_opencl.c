@@ -1,20 +1,19 @@
 // C standard includes
-#include <time.h>
+#include <assert.h>
+#include <inttypes.h>
+#include <locale.h>
 #include <math.h>
 #include <stdio.h>
-#include <assert.h>
 #include <stdlib.h>
-#include <locale.h>
-#include <inttypes.h>
+#include <time.h>
 
 // OpenCL includes
 #include <CL/cl.h>
 
 #include <common.h>
 
-
 // OpenCL hello world program that calculates sin(x) in parallel.
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     // Initialize system.
     srand(time(NULL));
@@ -30,8 +29,8 @@ int main(int argc, char *argv[])
     // Initialize our data
     const size_t LENGTH = 2560 * 1440 * 3;
     const size_t DATA_SIZE = sizeof(cl_float) * LENGTH;
-    cl_float *const data = fetch_random_data(LENGTH, -CL_M_PI_F, CL_M_PI_F);
-    cl_float *v1 = array_copy(data, LENGTH);
+    cl_float* const data = fetch_random_data(LENGTH, -CL_M_PI_F, CL_M_PI_F);
+    cl_float* v1 = array_copy(data, LENGTH);
 
     // Setup OpenCL
     cl_device_id device = select_device();
@@ -42,15 +41,14 @@ int main(int argc, char *argv[])
     cl_command_queue queue = clCreateCommandQueueWithProperties(context, device, queue_properties, NULL);
 
     // Define our kernel. This is the function that calculates the sin of the input data in parallel.
-    const char *source =
-        "__kernel void expensiveFunction(__global const float * restrict input,\n"
-        "                                __global float * restrict output) {\n"
-        "    size_t id = get_global_id(0);\n"
-        "    output[id] = atanh(sin(input[id]) * cos(input[id])) + tanh(input[id]);\n"
-        "}\n";
+    const char* source = "__kernel void expensiveFunction(__global const float * restrict input,\n"
+                         "                                __global float * restrict output) {\n"
+                         "    size_t id = get_global_id(0);\n"
+                         "    output[id] = atanh(sin(input[id]) * cos(input[id])) + tanh(input[id]);\n"
+                         "}\n";
 
     // Compile the program (i.e. the collection of kernels).
-    cl_program program = clCreateProgramWithSource(context, 1, (const char **)&source, NULL, NULL);
+    cl_program program = clCreateProgramWithSource(context, 1, (const char**)&source, NULL, NULL);
     clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
     cl_kernel kernel = clCreateKernel(program, "expensiveFunction", NULL);
 
@@ -97,7 +95,7 @@ int main(int argc, char *argv[])
     printf("> [COLD] Finished after %.5lf sec\n", elapsed_setup);
 
     // Perform the same computation without OpenCL
-    float *v2 = array_copy(data, LENGTH);
+    float* v2 = array_copy(data, LENGTH);
 
     printf("\nComputing locally...\n");
 

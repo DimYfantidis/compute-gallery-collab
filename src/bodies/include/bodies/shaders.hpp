@@ -1,13 +1,13 @@
 #pragma once
 
+#include <filesystem>
+#include <format>
+#include <fstream>
+#include <glad/gl.h>
 #include <iostream>
+#include <sstream>
 #include <stdexcept>
 #include <string>
-#include <filesystem>
-#include <fstream>
-#include <format>
-#include <sstream>
-#include <glad/gl.h>
 
 // Compile a shader and check for errors
 inline GLuint compileShaderFromSource(GLenum type, const std::string& source)
@@ -38,10 +38,7 @@ inline GLuint compileShaderFromFile(GLenum type, const std::filesystem::path& fi
     std::ifstream ifs(filepath, std::ios::in);
 
     if (!ifs.is_open())
-        throw std::runtime_error(
-            std::format("File '{}' not found! {}: {}",
-                        filepath.string(), __FILE__, __LINE__)
-        );
+        throw std::runtime_error(std::format("File '{}' not found! {}: {}", filepath.string(), __FILE__, __LINE__));
 
     std::stringstream text_buffer;
     text_buffer << ifs.rdbuf();
