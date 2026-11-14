@@ -168,7 +168,7 @@ and/or `CG_CL_DEVICE=<i>`.
 * Download [Microsoft's Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) `ms-vscode-remote.remote-containers` for your editor. 
 * Create `./devcontainer/devcontainer.json` and paste the following JSON template inside of it. Make sure to make the appropriate changes udner the `"service"` and `"runServices"` fields to match your platform (e.g. `linux-nvidia`):
 
-```json
+```jsonc
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
 // README at: https://github.com/devcontainers/templates/tree/main/src/docker-existing-docker-compose
 {
