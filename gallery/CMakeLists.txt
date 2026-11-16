@@ -124,7 +124,9 @@ add_executable(compute-gallery WIN32
     src/theme.cpp
     src/widgets.cpp
 )
-target_compile_definitions(compute-gallery PRIVATE CG_VERSION="${PROJECT_VERSION}")
+# GLFW_INCLUDE_NONE: GLAD provides the OpenGL declarations, so GLFW must not include the
+# system <GL/gl.h> (GLAD refuses to follow it); the headers may then come in any order.
+target_compile_definitions(compute-gallery PRIVATE CG_VERSION="${PROJECT_VERSION}" GLFW_INCLUDE_NONE)
 if (UNIX AND NOT APPLE)
     # Demo windows are embedded with Xlib on X11.
     find_package(X11 REQUIRED)
