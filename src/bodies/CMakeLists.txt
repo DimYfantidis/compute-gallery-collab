@@ -7,6 +7,20 @@ find_package(OpenGL REQUIRED)
 include(FetchContent)
 
 # ---------------------------------------
+# SPDLog
+# ---------------------------------------
+
+FetchContent_Declare(
+    spdlog
+    GIT_REPOSITORY https://github.com/gabime/spdlog.git
+    GIT_TAG v1.17.0
+)
+set(SPDLOG_FMT_EXTERNAL OFF)
+set(SPDLOG_FMT_EXTERNAL_HO OFF)
+
+FetchContent_MakeAvailable(spdlog)
+
+# ---------------------------------------
 # GLFW
 # ---------------------------------------
 
@@ -77,6 +91,7 @@ endif()
 set(SRC 
     ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/mesh.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/shaders.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/textures.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/body_processing.cpp
 )
@@ -96,6 +111,8 @@ add_custom_target(copy_data ALL
 add_executable(${PROJECT_NAME} ${SRC})
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include ${STB_INCLUDE_DIR})
 target_link_libraries(${PROJECT_NAME} PRIVATE 
+    common::common
+    spdlog::spdlog
     OpenGL::GL 
     glad_gl_core_33
     glfw

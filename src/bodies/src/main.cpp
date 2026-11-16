@@ -5,17 +5,13 @@
 #include <filesystem>
 #include <format>
 #include <functional>
-#include <iostream>
-#include <limits>
-#include <map>
-#include <random>
-#include <ranges>
 #include <string>
 #include <type_traits>
 #include <vector>
 
-#include <GLFW/glfw3.h>
 #include <glad/gl.h>
+
+#include <GLFW/glfw3.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -27,18 +23,23 @@
 #include <bodies/textures.hpp>
 #include <bodies/vertex.hpp>
 
+#include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/spdlog.h>
+
+static std::shared_ptr<spdlog::logger> logger = spdlog::stdout_color_mt("bodies.main");
+
 int main()
 {
     // Resource directory.
     const std::filesystem::path DATA_DIR = DATA_DIRECTORY_PATH;
 
     // There must be no padding when transferring data to the GPU.
-    static_assert(std::is_standard_layout_v<Vertex>);
+    static_assert(std::is_standard_layout_v<bodies::Vertex>);
 
     // Initialize GLFW
     if (!glfwInit())
     {
-        std::cerr << "Failed to initialize GLFW\n";
+        logger->error("Failed to initialize GLFW.");
         return EXIT_FAILURE;
     }
 
@@ -52,7 +53,7 @@ int main()
 
     if (!window)
     {
-        std::cerr << "Failed to create window\n";
+        logger->error("Failed to create window.");
         glfwTerminate();
         return EXIT_FAILURE;
     }
@@ -62,78 +63,89 @@ int main()
     // Load OpenGL functions using GLAD 2
     if (!gladLoadGL(glfwGetProcAddress))
     {
-        std::cerr << "Failed to initialize GLAD\n";
+        logger->error("Failed to initialize GLAD.");
         glfwDestroyWindow(window);
         glfwTerminate();
         return EXIT_FAILURE;
     }
 
     // Enable vertical synchronization
-    glfwSwapInterval(1);
+    glfwSwapInterval(GLFW_TRUE);
 
     // Enable depth testing
     glEnable(GL_DEPTH_TEST);
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-    std::cout << "OpenGL: " << glGetString(GL_VERSION) << '\n';
+    logger->info("OpenGL: {}", (const char*)glGetString(GL_VERSION));
 
     // -------------------------------------------------------
     // Create sphere mesh
     // -------------------------------------------------------
 
-    const Mesh sphere = Mesh::sphere(32, 64);
+    const bodies::Mesh sphere = bodies::Mesh::sphere(32, 64);
 
     const auto vertices = sphere.vertices();
     const auto indices = sphere.indices();
 
-    std::cout << "Vertices: " << vertices.size() << '\n';
-    std::cout << "Indices: " << indices.size() << '\n';
-    std::cout << "Triangles: " << indices.size() / 3 << '\n';
+    logger->info("Vertices: {}", vertices.size());
+    logger->info("Indices: {}", indices.size());
+    logger->info("Triangles: {}", indices.size() / 3);
 
     // -------------------------------------------------------
     // Compile shaders
     // -------------------------------------------------------
 
-    GLuint vertexShader = compileShaderFromFile(GL_VERTEX_SHADER, DATA_DIR / "shaders" / "sphere_vertex.glsl");
+    GLuint vertex_shader_id = std::invoke([&]() {
+        Status<GLuint> status =
+            bodies::compileShaderFromFile(GL_VERTEX_SHADER, DATA_DIR / "shaders" / "sphere_vertex.glsl");
+        if (!status.ok)
+        {
+            logger->error("Error when compiling Vertex Shader: {}", status.message);
+            glfwDestroyWindow(window);
+            glfwTerminate();
+            std::exit(EXIT_FAILURE);
+        }
+        return status.value;
+    });
 
-    GLuint fragmentShader = compileShaderFromFile(GL_FRAGMENT_SHADER, DATA_DIR / "shaders" / "fragment.glsl");
-
-    if (!vertexShader || !fragmentShader)
-    {
-        glDeleteShader(vertexShader);
-        glDeleteShader(fragmentShader);
-
-        glfwDestroyWindow(window);
-        glfwTerminate();
-        return EXIT_FAILURE;
-    }
+    GLuint fragment_shader_id = std::invoke([&]() {
+        Status<GLuint> status =
+            bodies::compileShaderFromFile(GL_FRAGMENT_SHADER, DATA_DIR / "shaders" / "fragment.glsl");
+        if (!status.ok)
+        {
+            logger->error("Error when compiling Fragment Shader: {}", status.message);
+            glDeleteShader(vertex_shader_id);
+            glfwDestroyWindow(window);
+            glfwTerminate();
+            std::exit(EXIT_FAILURE);
+        }
+        return status.value;
+    });
 
     // -------------------------------------------------------
     // Create shader program
     // -------------------------------------------------------
 
-    GLuint shaderProgram = glCreateProgram();
+    GLuint shader_program_id = glCreateProgram();
 
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
+    glAttachShader(shader_program_id, vertex_shader_id);
+    glAttachShader(shader_program_id, fragment_shader_id);
+    glLinkProgram(shader_program_id);
 
     GLint linked = GL_FALSE;
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &linked);
+    glGetProgramiv(shader_program_id, GL_LINK_STATUS, &linked);
 
     // Individual shaders are no longer needed
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
+    glDeleteShader(vertex_shader_id);
+    glDeleteShader(fragment_shader_id);
 
     if (!linked)
     {
         char log[1024];
+        glGetProgramInfoLog(shader_program_id, sizeof(log), nullptr, log);
+        logger->error("Shader linking failed: {}", log);
 
-        glGetProgramInfoLog(shaderProgram, sizeof(log), nullptr, log);
-
-        std::cerr << "Shader linking failed:\n" << log << '\n';
-
-        glDeleteProgram(shaderProgram);
+        glDeleteProgram(shader_program_id);
         glfwDestroyWindow(window);
         glfwTerminate();
         return EXIT_FAILURE;
@@ -159,7 +171,6 @@ int main()
     // -------------------------------------------------------
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-
     glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(vertices.size_bytes()), vertices.data(), GL_STATIC_DRAW);
 
     // -------------------------------------------------------
@@ -167,7 +178,6 @@ int main()
     // -------------------------------------------------------
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLsizeiptr>(indices.size_bytes()), indices.data(),
                  GL_STATIC_DRAW);
 
@@ -176,21 +186,18 @@ int main()
     // -------------------------------------------------------
 
     // Position: layout(location = 0) in vec3
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                          reinterpret_cast<const void*>(offsetof(Vertex, position)));
-
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(bodies::Vertex),
+                          reinterpret_cast<const void*>(offsetof(bodies::Vertex, position)));
     glEnableVertexAttribArray(0);
 
     // Normal: layout(location = 1) in vec3
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                          reinterpret_cast<const void*>(offsetof(Vertex, normal)));
-
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(bodies::Vertex),
+                          reinterpret_cast<const void*>(offsetof(bodies::Vertex, normal)));
     glEnableVertexAttribArray(1);
 
     // Texture coordinates: layout(location = 2) in vec2
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                          reinterpret_cast<const void*>(offsetof(Vertex, texCoord)));
-
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(bodies::Vertex),
+                          reinterpret_cast<const void*>(offsetof(bodies::Vertex, texCoord)));
     glEnableVertexAttribArray(2);
 
     // Unbind VAO
@@ -199,21 +206,37 @@ int main()
     // Unbind VBO (optional)
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    // IMPORTANT:
-    // Do not unbind GL_ELEMENT_ARRAY_BUFFER while VAO is bound.
-    // The VAO remembers its associated EBO.
-
     // -------------------------------------------------------
-    // Load the Earth's texture
+    // Load planet texture
     // -------------------------------------------------------
 
-    GLuint ceresTexture = loadTexture(DATA_DIR / "textures" / "2k_ceres_fictional.jpg");
+    GLuint ceres_texture_id = std::invoke([&]() -> GLuint {
+        Status<GLuint> status = bodies::loadTexture(DATA_DIR / "textures" / "2k_ceres_fictional.jpg");
+        if (!status.ok)
+        {
+            logger->warn("`loadTexture` returned error; using white as fallback texture.");
+            constexpr GLubyte white_pixel[4] = {255, 255, 255, 255};
+            GLuint fallback_texture_id = 0;
+            glGenTextures(1, &fallback_texture_id);
+            glBindTexture(GL_TEXTURE_2D, fallback_texture_id);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, white_pixel);
+            glBindTexture(GL_TEXTURE_2D, 0);
+            return fallback_texture_id;
+        }
+        return status.value;
+    });
 
     constexpr size_t NUM_BODIES = 1'000;
-    std::vector<SphereData> bodyData = initBodies({.num_bodies = NUM_BODIES,
-                                                   .radius_range = {.min = 0.4f, .max = 2.0f},
-                                                   .distance_range = {.min = 20.0f, .max = 400.0f},
-                                                   .mass_range = {.min = 480.0f, .max = 500.0f}});
+    std::vector<bodies::SphereData> bodyData = bodies::initBodies({
+        .num_bodies = NUM_BODIES,
+        .radius_range = {.min = 0.4f, .max = 2.0f},
+        .distance_range = {.min = 20.0f, .max = 400.0f},
+        .mass_range = {.min = 480.0f, .max = 500.0f},
+    });
 
     // Camera parameters
     double u = glm::pi<double>() / 4;
@@ -227,23 +250,23 @@ int main()
     constexpr size_t NUM_OBJECTS_PER_DRAW = 500;
 
     // Get uniform locations
-    const GLint viewLoc = glGetUniformLocation(shaderProgram, "view");
-    const GLint projectionLoc = glGetUniformLocation(shaderProgram, "projection");
-    const std::vector<GLint> positionLoc = std::invoke([shaderProgram]() {
+    const GLint viewLoc = glGetUniformLocation(shader_program_id, "view");
+    const GLint projectionLoc = glGetUniformLocation(shader_program_id, "projection");
+    const std::vector<GLint> positionLoc = std::invoke([shader_program_id]() {
         std::vector<GLint> result(NUM_OBJECTS_PER_DRAW);
         for (size_t i = 0; i < NUM_OBJECTS_PER_DRAW; ++i)
         {
             std::string name = std::format("positions[{}]", i);
-            result[i] = glGetUniformLocation(shaderProgram, name.c_str());
+            result[i] = glGetUniformLocation(shader_program_id, name.c_str());
         }
         return result;
     });
-    const std::vector<GLint> radiusLoc = std::invoke([shaderProgram]() {
+    const std::vector<GLint> radiusLoc = std::invoke([shader_program_id]() {
         std::vector<GLint> result(NUM_OBJECTS_PER_DRAW);
         for (size_t i = 0; i < NUM_OBJECTS_PER_DRAW; ++i)
         {
             std::string name = std::format("radii[{}]", i);
-            result[i] = glGetUniformLocation(shaderProgram, name.c_str());
+            result[i] = glGetUniformLocation(shader_program_id, name.c_str());
         }
         return result;
     });
@@ -324,13 +347,13 @@ int main()
         if (glfwGetKey(window, GLFW_KEY_EQUAL) == GLFW_PRESS)
         {
             sim_speed_factor *= 1.02;
-            std::cout << "Simulation speed: x" << sim_speed_factor << '\n';
+            logger->info("Simulation speed: x{}", sim_speed_factor);
         }
         if (glfwGetKey(window, GLFW_KEY_MINUS) == GLFW_PRESS)
         {
             sim_speed_factor /= 1.02;
             sim_speed_factor = (sim_speed_factor < 1000.0 ? 1000.0 : sim_speed_factor);
-            std::cout << "Simulation speed: x" << sim_speed_factor << '\n';
+            logger->info("Simulation speed: x{}", sim_speed_factor);
         }
 
         {
@@ -347,13 +370,13 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Activate shader program
-        glUseProgram(shaderProgram);
+        glUseProgram(shader_program_id);
 
         // Texture unit 0
-        glUniform1i(glGetUniformLocation(shaderProgram, "diffuseTexture"), 0);
+        glUniform1i(glGetUniformLocation(shader_program_id, "diffuseTexture"), 0);
         // Lighting
-        glUniform3f(glGetUniformLocation(shaderProgram, "lightPos"), 0.0f, 0.0f, 0.0f);
-        glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), 1.0f, 1.0f, 1.0f);
+        glUniform3f(glGetUniformLocation(shader_program_id, "lightPos"), 0.0f, 0.0f, 0.0f);
+        glUniform3f(glGetUniformLocation(shader_program_id, "lightColor"), 1.0f, 1.0f, 1.0f);
 
         // Upload view matrix
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
@@ -361,7 +384,7 @@ int main()
         glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
         // Bind texture
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, ceresTexture);
+        glBindTexture(GL_TEXTURE_2D, ceres_texture_id);
 
         // Bind sphere VAO
         glBindVertexArray(VAO);
@@ -394,12 +417,13 @@ int main()
     // Cleanup
     // -------------------------------------------------------
 
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &EBO);
+    glDeleteTextures(1, &ceres_texture_id);
 
-    glDeleteTextures(1, &ceresTexture);
-    glDeleteProgram(shaderProgram);
+    glDeleteBuffers(1, &EBO);
+    glDeleteBuffers(1, &VBO);
+    glDeleteVertexArrays(1, &VAO);
+
+    glDeleteProgram(shader_program_id);
 
     glfwDestroyWindow(window);
     glfwTerminate();

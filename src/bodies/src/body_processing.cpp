@@ -1,8 +1,7 @@
 #include <bodies/body_processing.hpp>
+#include <map>
 #include <memory_resource>
-
-#include <format>
-#include <iostream>
+#include <random>
 
 static std::mt19937& getGenerator()
 {
@@ -22,6 +21,9 @@ static bool detectSphereCollision(const glm::vec3& p1, float r1, const glm::vec3
     const float radiusSum = r1 + r2;
     return glm::dot(diff, diff) <= radiusSum * radiusSum;
 }
+
+namespace bodies
+{
 
 std::vector<SphereData> initBodies(const InitBodiesServiceRequest& request)
 {
@@ -100,7 +102,6 @@ std::vector<SphereData> initBodies(const InitBodiesServiceRequest& request)
     }
     return bodies;
 }
-
 void updateBodies(std::span<SphereData> bodies, double dt_sec, double sim_speed_factor)
 {
     constexpr float G = 6.67430e-11f;
@@ -138,3 +139,5 @@ void updateBodies(std::span<SphereData> bodies, double dt_sec, double sim_speed_
         bodies[i].position += bodies[i].velocity * dt;
     }
 }
+
+} // namespace bodies

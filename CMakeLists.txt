@@ -54,6 +54,7 @@ if (CG_BUILD_BODIES OR CG_BUILD_GALLERY)
 endif()
 
 if (CG_BUILD_BODIES)
+    add_subdirectory(${CMAKE_SOURCE_DIR}/src/common "${CMAKE_BINARY_DIR}/common")
     add_subdirectory(${CMAKE_SOURCE_DIR}/src/bodies "${CMAKE_BINARY_DIR}/bodies")
 
     if (CG_RELOCATABLE)

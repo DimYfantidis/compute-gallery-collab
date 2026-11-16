@@ -1,7 +1,3 @@
-#pragma once
-
-#include <map>
-#include <random>
 #include <span>
 #include <vector>
 
@@ -9,6 +5,9 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+namespace bodies
+{
+    
 struct SphereData
 {
     glm::vec3 position{0.0f, 0.0f, 0.0f};
@@ -58,3 +57,5 @@ std::vector<SphereData> initBodies(const InitBodiesServiceRequest& request);
  *  @param[in] sim_speed_factor Scale factor for @ref dt_sec.
  */
 void updateBodies(std::span<SphereData> bodies, double dt_sec, double sim_speed_factor);
+
+} // namespace bodies

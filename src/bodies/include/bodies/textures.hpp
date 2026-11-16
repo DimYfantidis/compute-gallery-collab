@@ -3,4 +3,11 @@
 #include <filesystem>
 #include <glad/gl.h>
 
-GLuint loadTexture(const std::filesystem::path& filename);
+#include <common/status.hpp>
+
+namespace bodies
+{
+
+Status<GLuint> loadTexture(const std::filesystem::path& filepath);
+
+}

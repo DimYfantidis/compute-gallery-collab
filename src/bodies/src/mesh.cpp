@@ -1,10 +1,12 @@
 #include <format>
 #include <iostream>
-#include <stdexcept>
 
 #include <glm/gtc/constants.hpp>
 
 #include <bodies/mesh.hpp>
+
+namespace bodies
+{
 
 Mesh Mesh::sphere(int stacks, int slices)
 {
@@ -76,3 +78,5 @@ bool Mesh::isEmpty() const noexcept
 {
     return vertices_.empty();
 }
+
+} // namespace bodies

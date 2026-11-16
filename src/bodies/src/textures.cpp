@@ -1,8 +1,14 @@
 #include <bodies/textures.hpp>
-#include <iostream>
+#include <spdlog/logger.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
 #include <stb/stb_image.h>
 
-GLuint loadTexture(const std::filesystem::path& filepath)
+static const std::shared_ptr<spdlog::logger> logger = spdlog::stdout_color_mt("bodies.texture.cpp");
+
+namespace bodies
+{
+
+Status<GLuint> loadTexture(const std::filesystem::path& filepath)
 {
     int width, height, channels;
 
@@ -10,12 +16,17 @@ GLuint loadTexture(const std::filesystem::path& filepath)
 
     if (!data)
     {
-        std::cerr << "Failed to load texture: '" << filepath.string() << "'\n";
-        return 0;
+        std::string error_msg = std::format("Failed to load texture: '{}'", filepath.string());
+        logger->warn(error_msg);
+        return {
+            .ok = false,
+            .value = {},
+            .message = std::move(error_msg),
+        };
     }
-    GLuint texture;
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
+    GLuint texture_id;
+    glGenTextures(1, &texture_id);
+    glBindTexture(GL_TEXTURE_2D, texture_id);
 
     // Repeat horizontally (around the sphere).
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -31,5 +42,11 @@ GLuint loadTexture(const std::filesystem::path& filepath)
 
     glBindTexture(GL_TEXTURE_2D, 0);
 
-    return texture;
+    return {
+        .ok = true,
+        .value = texture_id,
+        .message = "",
+    };
 }
+
+} // namespace bodies
