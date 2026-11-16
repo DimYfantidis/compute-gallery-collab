@@ -405,7 +405,7 @@ cmd_help() {
                    (keep it running with CG_KEEP_RUNNING=1)
 
   ${B}Exhibits${R}
-    bodies         thousands of textured spheres, instanced OpenGL
+    bodies         a thousand spheres under gravity, instanced OpenGL
     test_opencl    OpenCL vs plain C on 11M floats, timed and verified
     grayscale_gpu  grayscale filter as an OpenCL kernel
     grayscale_cpu  the same filter in single-threaded C
@@ -442,7 +442,7 @@ EOF
 # ----------------------------------------------------------------------------
 
 #        key  name           path                  gui  description                                          controls
-EXHIBITS="1|bodies|bodies/bodies|1|Thousands of textured spheres, instanced OpenGL|WASD/arrows orbit, numpad +/- zoom, Esc quits
+EXHIBITS="1|bodies|bodies/bodies|1|A thousand spheres under gravity, instanced OpenGL|WASD/arrows orbit, numpad +/- zoom, =/- sim speed, Esc quits
 2|test_opencl|test_opencl|0|OpenCL vs plain C on 11M floats, timed + verified|prints results, no input
 3|grayscale_gpu|grayscale_gpu|1|Grayscale filter as an OpenCL kernel|Esc closes the image
 4|grayscale_cpu|grayscale_cpu|1|The same filter in single-threaded C|Esc closes the image

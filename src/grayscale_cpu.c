@@ -137,6 +137,15 @@ int main(int argc, char* argv[])
 
         if (should_sdl_exit(&event))
             break;
+
+        // Redraw when the window is resized (e.g. fitted into the gallery) or uncovered.
+        if (event.type == SDL_WINDOWEVENT &&
+            (event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED || event.window.event == SDL_WINDOWEVENT_EXPOSED))
+        {
+            SDL_RenderClear(rend);
+            SDL_RenderCopy(rend, tex, NULL, NULL);
+            SDL_RenderPresent(rend);
+        }
     }
 
     cleanup_sdl(surface, win, rend, tex);

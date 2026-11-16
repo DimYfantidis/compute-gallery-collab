@@ -21,7 +21,7 @@ more, and **Help** covers the rest.
 
 | Demo | What it shows | Needs |
 |---|---|---|
-| Celestial Bodies (`bodies`) | Thousands of textured spheres drawn with instanced OpenGL 3.3 | OpenGL |
+| Celestial Bodies (`bodies`) | A thousand textured spheres under N-body gravity, drawn with instanced OpenGL 3.3 | OpenGL |
 | Grayscale on the GPU (`grayscale_gpu`) | A large photo converted to grayscale by an OpenCL kernel | OpenCL |
 | Grayscale on the CPU (`grayscale_cpu`) | The same filter as a single-threaded C loop | - |
 | OpenCL vs. plain C (`test_opencl`) | 11M floats through the same math in OpenCL and C, timed and checked | OpenCL |
@@ -166,7 +166,7 @@ and/or `CG_CL_DEVICE=<i>`.
 ### Developing in Visual Studio Code (VSCode)
 
 * Download [Microsoft's Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) `ms-vscode-remote.remote-containers` for your editor. 
-* Create `./devcontainer/devcontainer.json` and paste the following JSON template inside of it. Make sure to make the appropriate changes udner the `"service"` and `"runServices"` fields to match your platform (e.g. `linux-nvidia`):
+* Create `.devcontainer/devcontainer.json` and paste the following JSON template inside of it. Make sure to make the appropriate changes under the `"service"` and `"runServices"` fields to match your platform (e.g. `linux-nvidia`):
 
 ```jsonc
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
@@ -255,7 +255,7 @@ cmake --build build
 ```
 
 **Tests**: `ctest --test-dir build` runs the gallery's tests (launching and stopping demos, manifests,
-settings); they need no window or GPU.
+demo options); they need no window or GPU.
 
 **A package like the release ones**: add `-DCG_RELOCATABLE=ON -DCG_NATIVE_ARCH=OFF` when configuring, then
 `cmake --install build --prefix dist/compute-gallery`. The resulting folder runs from anywhere; on macOS it is

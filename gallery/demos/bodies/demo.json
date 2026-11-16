@@ -2,25 +2,28 @@
     "title": "Celestial Bodies",
     "category": "Graphics",
     "author": "Dimitris Yfantidis",
-    "summary": "Thousands of textured spheres drawn with instanced OpenGL.",
-    "description": "Thousands of textured spheres scattered through a spherical shell around the origin, drawn in instanced batches with OpenGL 3.3 and lit by a point light at the centre. This is the scene the N-body simulation will set in motion.",
+    "summary": "A thousand textured spheres pulling on each other with gravity, drawn with instanced OpenGL.",
+    "description": "A thousand textured spheres scattered through a spherical shell around the origin, each pulling on every other with Newton's law of gravity. They start at rest: hold = to speed up time and watch them fall together. They are drawn in instanced batches with OpenGL 3.3 and lit by a point light at the centre.",
     "how_it_works": [
-        "One sphere mesh (32 x 64 segments, about 4,000 triangles) is uploaded to the GPU once. All 3,318 spheres are drawn from it with instanced rendering: each glDrawElementsInstanced call draws up to 500 copies, and the vertex shader moves and scales every copy using its instance number to look up a position and a radius.",
+        "Every frame, each body's acceleration is the sum of the gravitational pulls of all the others (G m / r squared), about a million pairs for 1,000 bodies, computed on one CPU core. Velocities and positions then advance by the frame's time step, multiplied by the simulation speed.",
+        "One sphere mesh (32 x 64 segments, about 4,000 triangles) is uploaded to the GPU once. All 1,000 spheres are drawn from it with instanced rendering: each glDrawElementsInstanced call draws up to 500 copies, and the vertex shader moves and scales every copy using its instance number to look up a position and a radius.",
         "Lighting is diffuse (Lambert) shading from a point light at the origin plus a little ambient light, applied to a texture of a fictional Ceres-like surface.",
         "The bodies sit at random directions and distances (20 to 400 units) from the origin; the camera orbits that point in spherical coordinates."
     ],
     "highlights": [
-        "Thousands of spheres from just seven draw calls per frame.",
+        "A thousand spheres from just two draw calls per frame.",
+        "Hold = to speed up time: the bodies start at rest and slowly fall towards each other.",
         "The sides facing the centre are lit; the far sides fall back to the ambient light.",
         "Zoom out with numpad minus to see the whole shell of bodies."
     ],
-    "tags": ["OpenGL 3.3", "Instancing", "GLSL"],
+    "tags": ["OpenGL 3.3", "Instancing", "N-body", "GLSL"],
     "executable": "bodies/bodies",
     "window": "embed",
     "requires": ["opengl"],
     "controls": [
         ["W A S D / arrows", "Orbit the camera"],
         ["Numpad + / -", "Zoom in / out"],
+        ["= / -", "Speed up / slow down the simulation"],
         ["Esc", "Back to the gallery"]
     ],
     "thumbnail": "thumbnail.png"

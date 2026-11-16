@@ -107,4 +107,8 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
     CXX_EXTENSIONS OFF
 )
 target_compile_definitions(${PROJECT_NAME} PRIVATE DATA_DIRECTORY_PATH="${CMAKE_CURRENT_SOURCE_DIR}/data" STB_IMAGE_IMPLEMENTATION)
+# GLAD provides the OpenGL declarations: GLFW must not include the system <GL/gl.h>, which
+# GLAD refuses to follow. With this, the two headers may be included in any order (as
+# clang-format sorts them).
+target_compile_definitions(${PROJECT_NAME} PRIVATE GLFW_INCLUDE_NONE)
 cg_enable_native_arch(${PROJECT_NAME})

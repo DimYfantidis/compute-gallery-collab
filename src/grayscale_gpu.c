@@ -111,8 +111,9 @@ int main(int argc, char* argv[])
     {
         cl_event event;
 
-        // Copy the data to the input.
-        CHECK_CL(clEnqueueWriteBuffer(queue, input_buffer, CL_FALSE, 0, len_bytes, surface->pixels, 0, NULL, &event));
+        // Copy the data to the input. Only the kernel's event is kept (for its timing); the
+        // queue is in order, so the copies need no events of their own.
+        CHECK_CL(clEnqueueWriteBuffer(queue, input_buffer, CL_FALSE, 0, len_bytes, surface->pixels, 0, NULL, NULL));
 
         // Execute the kernel
         CHECK_CL(clSetKernelArg(kernel, 0, sizeof(cl_mem), &input_buffer));
@@ -127,7 +128,7 @@ int main(int argc, char* argv[])
         CHECK_CL(clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(time_end), &time_end, NULL));
 
         // Read back the results.
-        CHECK_CL(clEnqueueReadBuffer(queue, output_buffer, CL_FALSE, 0, len_bytes, surface->pixels, 0, NULL, &event));
+        CHECK_CL(clEnqueueReadBuffer(queue, output_buffer, CL_FALSE, 0, len_bytes, surface->pixels, 0, NULL, NULL));
 
         double elapsed_kernel = (time_end - time_start) * 1e-6;
         printf("> Kernel exution finshed after: %.4lf ms \n", elapsed_kernel);
@@ -202,6 +203,15 @@ int main(int argc, char* argv[])
 
         if (should_sdl_exit(&event))
             break;
+
+        // Redraw when the window is resized (e.g. fitted into the gallery) or uncovered.
+        if (event.type == SDL_WINDOWEVENT &&
+            (event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED || event.window.event == SDL_WINDOWEVENT_EXPOSED))
+        {
+            SDL_RenderClear(rend);
+            SDL_RenderCopy(rend, tex, NULL, NULL);
+            SDL_RenderPresent(rend);
+        }
     }
 
     cleanup_sdl(surface, win, rend, tex);

@@ -23,7 +23,7 @@ float* array_copy(const float* src, size_t length)
     return dest;
 }
 
-void assert_equals(const float* const v1, const float* const v2, size_t length, float tolerance)
+int assert_equals(const float* const v1, const float* const v2, size_t length, float tolerance)
 {
     for (size_t i = 0; i < length; ++i)
     {
@@ -31,9 +31,10 @@ void assert_equals(const float* const v1, const float* const v2, size_t length, 
         if (diff >= tolerance)
         {
             fprintf(stderr, "Assertion for equal elements failed at #%zu!\n", i);
-            return;
+            return 0;
         }
     }
+    return 1;
 }
 
 cl_platform_id* load_platforms(cl_uint* num_platforms)

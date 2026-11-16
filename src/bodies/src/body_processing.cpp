@@ -107,9 +107,11 @@ void updateBodies(std::span<SphereData> bodies, double dt_sec, double sim_speed_
 
     const size_t num_bodies = bodies.size();
     std::vector<std::byte>& buffer = getMemoryBuffer();
-    if (buffer.size() != num_bodies)
+    // Room for one acceleration per body, so the pool below never falls back to the heap.
+    const size_t buffer_bytes = num_bodies * sizeof(glm::vec3);
+    if (buffer.size() != buffer_bytes)
     {
-        buffer.resize(num_bodies);
+        buffer.resize(buffer_bytes);
     }
     std::pmr::monotonic_buffer_resource pool{buffer.data(), buffer.size(), std::pmr::get_default_resource()};
     std::pmr::vector<glm::vec3> accelerations{num_bodies, glm::vec3(0.0f), &pool};
