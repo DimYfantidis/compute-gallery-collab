@@ -5,6 +5,8 @@ project(compute-gallery VERSION 0.1.0 LANGUAGES C CXX)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 include(NativeArch)
 
+enable_testing() # before any add_test, here or in a subdirectory
+
 # Each exhibit is optional so that a host missing one toolchain (e.g. no OpenCL
 # ICD on macOS, no SDL2 on a fresh Windows box) can still build the others.
 option(CG_BUILD_BODIES "Build the OpenGL bodies renderer" ON)
@@ -107,6 +109,11 @@ if (CG_BUILD_OPENCL)
             cg_enable_native_arch(${tg})
         endforeach()
 
+        # The benchmark checks the OpenCL results against plain C and exits with 1 on a mismatch.
+        # It needs an OpenCL device (PoCL is enough); `ctest -LE opencl` skips it where there is none.
+        add_test(NAME opencl_benchmark COMMAND test_opencl)
+        set_tests_properties(opencl_benchmark PROPERTIES LABELS opencl)
+
         # test_sdl stays out of packages: it is a smoke test and its image is not ours to ship.
         install(TARGETS grayscale_cpu grayscale_gpu test_opencl DESTINATION ${CG_INSTALL_ROOT})
         install(FILES ${CMAKE_SOURCE_DIR}/data/images/felix-mittermeier.jpg DESTINATION ${CG_INSTALL_ROOT}/data/images)
@@ -114,8 +121,6 @@ if (CG_BUILD_OPENCL)
         message(WARNING "OpenCL, SDL2 or SDL2_image not found: skipping the OpenCL exhibits")
     endif()
 endif()
-
-enable_testing()
 
 if (CG_BUILD_GALLERY)
     add_subdirectory(${CMAKE_SOURCE_DIR}/gallery "${CMAKE_BINARY_DIR}/gallery")

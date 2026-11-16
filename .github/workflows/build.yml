@@ -23,6 +23,20 @@ env:
   CMAKE_FLAGS: -G Ninja -DCMAKE_BUILD_TYPE=Release -DCG_RELOCATABLE=ON -DCG_NATIVE_ARCH=OFF
 
 jobs:
+  format:
+    name: Format
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check the C and C++ sources against .clang-format
+        # The demos and tests follow the repository's .clang-format; the gallery (gallery/) has
+        # its own style and is not checked. clang-format 18 comes with the runner image.
+        run: |
+          command -v clang-format-18 || { sudo apt-get update && sudo apt-get install -y clang-format-18; }
+          git ls-files -z 'src/*.c' 'src/*.cpp' 'src/*.h' 'src/*.hpp' 'include/*.h' 'tests/*.c' |
+            xargs -0 clang-format-18 --dry-run --Werror
+
   linux:
     name: Linux x64
     runs-on: ubuntu-24.04
@@ -113,7 +127,8 @@ jobs:
           ls dist/compute-gallery dist/compute-gallery/licenses
 
       - name: Test
-        run: ctest --test-dir build --output-on-failure
+        # The runner has no OpenCL device, so the OpenCL benchmark is left to the Linux job (PoCL).
+        run: ctest --test-dir build --output-on-failure -LE opencl
 
       - name: Smoke test
         run: dist/compute-gallery/compute-gallery.exe --list
@@ -172,7 +187,7 @@ jobs:
   release:
     name: Publish release
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: [linux, windows, macos]
+    needs: [format, linux, windows, macos]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
